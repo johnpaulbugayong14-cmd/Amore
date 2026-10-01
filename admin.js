@@ -12,6 +12,8 @@ import { encodeImage, isImageFile } from "../assets/js/image-utils.js";
   let photos = Space.loadData("gallery");
   let editingLetterId = null;
   const basePath = Space.getBasePath();
+  let dataLoaded = Boolean(Space.ready);
+  let dataLoadFailed = false;
 
   function photoSource(photo) {
     return photo.image.startsWith("data:") ? photo.image : `${basePath}assets/images/${encodeURIComponent(photo.image)}`;
@@ -19,12 +21,12 @@ import { encodeImage, isImageFile } from "../assets/js/image-utils.js";
 
   function renderLetters() {
     app.querySelector("[data-letter-count]").textContent = `${letters.length} ${letters.length === 1 ? "letter" : "letters"}`;
-    letterList.innerHTML = letters.length ? [...letters].sort((a, b) => b.date.localeCompare(a.date)).map((letter) => `<article class="admin-record" data-letter-id="${Space.escapeHTML(letter.id)}"><div class="admin-record-main"><p class="admin-record-title">${Space.escapeHTML(letter.title)}</p><p class="admin-record-meta">${Space.formatDate(letter.date, { month: "short", day: "numeric", year: "numeric" })}</p></div><div class="admin-record-actions"><button class="icon-button" type="button" data-edit-letter aria-label="Edit ${Space.escapeHTML(letter.title)}" title="Edit">✎</button><button class="icon-button" type="button" data-delete-letter aria-label="Delete ${Space.escapeHTML(letter.title)}" title="Delete">×</button></div></article>`).join("") : `<p class="admin-empty">No letters published yet.</p>`;
+    letterList.innerHTML = letters.length ? [...letters].sort((a, b) => b.date.localeCompare(a.date)).map((letter) => `<article class="admin-record" data-letter-id="${Space.escapeHTML(letter.id)}"><div class="admin-record-main"><p class="admin-record-title">${Space.escapeHTML(letter.title)}</p><p class="admin-record-meta">${Space.formatDate(letter.date, { month: "short", day: "numeric", year: "numeric" })}</p></div><div class="admin-record-actions"><button class="icon-button" type="button" data-edit-letter aria-label="Edit ${Space.escapeHTML(letter.title)}" title="Edit">✎</button><button class="button danger small" type="button" data-delete-letter aria-label="Delete ${Space.escapeHTML(letter.title)}">Delete</button></div></article>`).join("") : `<p class="admin-empty">${dataLoadFailed ? "Could not load letters from Firestore. Check the connection and try again." : dataLoaded ? "No letters have been published to Firestore yet." : "Loading published letters from Firestore…"}</p>`;
   }
 
   function renderPhotos() {
     app.querySelector("[data-photo-count]").textContent = `${photos.length} ${photos.length === 1 ? "photo" : "photos"}`;
-    photoList.innerHTML = photos.length ? [...photos].sort((a, b) => b.date.localeCompare(a.date)).map((photo) => `<article class="admin-record" data-photo-id="${Space.escapeHTML(photo.id)}"><img class="admin-photo-thumb" src="${photoSource(photo)}" alt=""><div class="admin-record-main"><p class="admin-record-title">${Space.escapeHTML(photo.caption)}</p><p class="admin-record-meta">${Space.formatDate(photo.date, { month: "short", day: "numeric", year: "numeric" })}</p></div><div class="admin-record-actions"><button class="icon-button" type="button" data-delete-photo aria-label="Delete ${Space.escapeHTML(photo.caption)}" title="Delete">×</button></div></article>`).join("") : `<p class="admin-empty">No photos in the shared gallery yet.</p>`;
+    photoList.innerHTML = photos.length ? [...photos].sort((a, b) => b.date.localeCompare(a.date)).map((photo) => `<article class="admin-record" data-photo-id="${Space.escapeHTML(photo.id)}"><img class="admin-photo-thumb" src="${photoSource(photo)}" alt=""><div class="admin-record-main"><p class="admin-record-title">${Space.escapeHTML(photo.caption)}</p><p class="admin-record-meta">${Space.formatDate(photo.date, { month: "short", day: "numeric", year: "numeric" })}</p></div><div class="admin-record-actions"><button class="icon-button" type="button" data-delete-photo aria-label="Delete ${Space.escapeHTML(photo.caption)}" title="Delete">×</button></div></article>`).join("") : `<p class="admin-empty">${dataLoadFailed ? "Could not load photos from Firestore. Check the connection and try again." : dataLoaded ? "No photos have been published to Firestore yet." : "Loading photos from Firestore…"}</p>`;
   }
 
   function render() {
@@ -58,24 +60,34 @@ import { encodeImage, isImageFile } from "../assets/js/image-utils.js";
   letterForm.elements.date.value = Space.localDateString();
   letterForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const fields = new FormData(letterForm);
-    const title = fields.get("title").trim();
-    const date = fields.get("date");
-    const teaser = fields.get("teaser").trim();
-    const paragraphs = fields.get("body").trim().split(/\n\s*\n/).filter(Boolean);
-    const existing = letters.find((letter) => letter.id === editingLetterId);
-    const id = existing?.id || crypto.randomUUID();
-    const file = existing?.file || `${id}.html`;
-    const kicker = `${Space.formatDate(date, { month: "long", day: "numeric", year: "numeric" })} · A note for you`;
-    const content = `<article class="letter-document"><p class="letter-kicker">${Space.escapeHTML(kicker)}</p><h1>${Space.escapeHTML(title)}</h1>${paragraphs.map((paragraph) => `<p class="letter-paragraph">${escapeParagraph(paragraph)}</p>`).join("")}</article>`;
-    const letter = { id, file, title, date, teaser, content };
-    const nextLetters = existing ? letters.map((item) => item.id === id ? letter : item) : [...letters, letter];
-    const saved = await Space.saveData("letters", nextLetters);
-    if (!saved) { setStatus("Firestore save failed", "error"); return; }
-    letters = nextLetters;
-    resetLetterForm();
-    renderLetters();
-    setStatus("Changes saved to Firestore", "ready");
+    const submitButton = letterForm.querySelector("[data-letter-submit]");
+    submitButton.disabled = true;
+    setStatus("Publishing letter to Firestore…");
+    try {
+      const fields = new FormData(letterForm);
+      const title = fields.get("title").trim();
+      const date = fields.get("date");
+      const teaser = fields.get("teaser").trim();
+      const paragraphs = fields.get("body").trim().split(/\n\s*\n/).filter(Boolean);
+      const existing = letters.find((letter) => letter.id === editingLetterId);
+      const id = existing?.id || crypto.randomUUID();
+      const file = existing?.file || `${id}.html`;
+      const kicker = `${Space.formatDate(date, { month: "long", day: "numeric", year: "numeric" })} · A note for you`;
+      const content = `<article class="letter-document"><p class="letter-kicker">${Space.escapeHTML(kicker)}</p><h1>${Space.escapeHTML(title)}</h1>${paragraphs.map((paragraph) => `<p class="letter-paragraph">${escapeParagraph(paragraph)}</p>`).join("")}</article>`;
+      const letter = { id, file, title, date, teaser, content };
+      const nextLetters = existing ? letters.map((item) => item.id === id ? letter : item) : [...letters, letter];
+      const saved = await Space.saveData("letters", nextLetters);
+      if (!saved) { setStatus("Letter was not saved. Check Firestore connection and rules.", "error"); return; }
+      letters = nextLetters;
+      resetLetterForm();
+      renderLetters();
+      setStatus("Letter published to Firestore and the shared site", "ready");
+    } catch (error) {
+      console.error("Could not publish letter.", error);
+      setStatus("Letter was not published. Check the form and try again.", "error");
+    } finally {
+      submitButton.disabled = false;
+    }
   });
 
   letterForm.querySelector("[data-letter-cancel]").addEventListener("click", resetLetterForm);
@@ -153,6 +165,8 @@ import { encodeImage, isImageFile } from "../assets/js/image-utils.js";
   function refreshData() {
     letters = Space.loadData("letters");
     photos = Space.loadData("gallery");
+    dataLoaded = true;
+    dataLoadFailed = false;
     setStatus("Connected to Firestore", "ready");
     render();
   }
@@ -161,6 +175,10 @@ import { encodeImage, isImageFile } from "../assets/js/image-utils.js";
   window.addEventListener("space:data-changed", (event) => {
     if (event.detail.key === "letters" || event.detail.key === "gallery") refreshData();
   });
-  window.addEventListener("space:connection-failed", () => setStatus("Firestore unavailable", "error"));
+  window.addEventListener("space:connection-failed", () => {
+    dataLoadFailed = true;
+    render();
+    setStatus("Firestore unavailable", "error");
+  });
   render();
 })();

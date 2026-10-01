@@ -13,7 +13,11 @@
 .admin-form textarea { min-height: 174px; }
 .admin-form-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .admin-form-actions .button[hidden] { display: none; }
+.admin-published-letters { margin-top: 22px; }
+.admin-published-letters .section-title { margin-bottom: 4px; }
+.admin-published-letters .section-title h3 { margin: 0; font-size: 14px; }
 .admin-record-list { display: grid; margin-top: 20px; }
+.admin-published-letters .admin-record-list { margin-top: 0; }
 .admin-empty { padding: 20px 8px; border-top: 1px solid var(--color-border); color: var(--color-muted); font-size: 13px; }
 .admin-record { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid var(--color-border); }
 .admin-record-main { min-width: 0; }
