@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Content Studio | Amore</title>
+  <link rel="stylesheet" href="../assets/css/theme.css?v=2">
+  <link rel="stylesheet" href="../assets/css/global.css?v=2">
+  <link rel="stylesheet" href="admin.css">
+  <script type="module" src="../assets/js/app.js?v=4"></script>
+  <script type="module" src="admin.js"></script>
+</head>
+<body data-base-path="../" data-page="admin">
+  <div data-site-nav></div>
+  <main class="page-shell" id="admin-app">
+    <div class="page-heading"><div><p class="eyebrow">Amore · Content studio</p><h1>Manage content</h1><p class="page-subtitle">Write a letter or add a memory to the shared album.</p></div><span class="admin-connection" data-admin-status>Connecting to Firestore…</span></div>
+    <aside class="admin-security-note"><strong>Shared access.</strong> The current Firestore rules let any Firebase anonymous-auth user edit shared letters and photos. This page is a separate interface, not an access-control boundary.</aside>
+    <div class="admin-grid">
+      <section class="admin-panel surface" aria-labelledby="letter-editor-heading">
+        <div class="admin-panel-heading"><div><p class="eyebrow">The words you want to keep</p><h2 id="letter-editor-heading">Letter editor</h2></div><span class="pill neutral" data-letter-count>0 letters</span></div>
+        <form class="admin-form" data-letter-form>
+          <input type="hidden" name="id">
+          <div class="field"><label for="letter-title">Title</label><input id="letter-title" name="title" maxlength="100" required></div>
+          <div class="admin-field-row"><div class="field"><label for="letter-date">Date</label><input id="letter-date" name="date" type="date" required></div><div class="field"><label for="letter-teaser">Short note</label><input id="letter-teaser" name="teaser" maxlength="120" required></div></div>
+          <div class="field"><label for="letter-body">Letter</label><textarea id="letter-body" name="body" maxlength="12000" rows="8" required placeholder="Write your letter here. Leave a blank line between paragraphs."></textarea></div>
+          <div class="admin-form-actions"><button class="button" type="submit" data-letter-submit>Publish letter</button><button class="button secondary" type="button" data-letter-cancel hidden>Cancel edit</button></div>
+        </form>
+        <div class="admin-record-list" data-letter-list aria-live="polite"></div>
+      </section>
+
+      <section class="admin-panel surface" aria-labelledby="gallery-editor-heading">
+        <div class="admin-panel-heading"><div><p class="eyebrow">The moments worth keeping</p><h2 id="gallery-editor-heading">Gallery manager</h2></div><span class="pill neutral" data-photo-count>0 photos</span></div>
+        <form class="admin-form" data-photo-form>
+          <div class="field"><label for="photo-file">Image file</label><input id="photo-file" name="image" type="file" accept="image/*,.ai,.apng,.arw,.cr2,.dds,.dng,.eps,.exr,.heic,.heif,.j2c,.j2k,.jng,.jp2,.jpf,.jpx,.jxl,.nef,.orf,.pcx,.psd,.raw,.rw2,.svg,.tga,.tif,.tiff,.xcf,.xpm" required></div>
+          <div class="admin-field-row"><div class="field"><label for="photo-caption">Caption</label><input id="photo-caption" name="caption" maxlength="120" required></div><div class="field"><label for="photo-date">Date</label><input id="photo-date" name="date" type="date" required></div></div>
+          <button class="button" type="submit" data-photo-submit>Add to gallery</button>
+        </form>
+        <div class="admin-record-list photo-record-list" data-photo-list aria-live="polite"></div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

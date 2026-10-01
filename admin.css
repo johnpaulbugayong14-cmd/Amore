@@ -1,0 +1,28 @@
+.admin-connection { padding: 5px 9px; border: 1px solid var(--color-border); border-radius: 99px; color: var(--color-muted); font-size: 11px; white-space: nowrap; }
+.admin-connection[data-state="ready"] { border-color: #cddfcf; background: #e8f0e9; color: #46634d; }
+.admin-connection[data-state="error"] { border-color: #edd0d1; background: #f8e5e4; color: #983d49; }
+.admin-security-note { margin: -8px 0 20px; padding: 12px 15px; border-left: 3px solid #b88c58; background: #f3eadf; color: #67564b; font-size: 12px; }
+.admin-security-note strong { color: var(--color-text); }
+.admin-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: 16px; }
+.admin-panel { min-width: 0; padding: 21px; }
+.admin-panel-heading { display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.admin-panel-heading .eyebrow { margin-bottom: 4px; }
+.admin-panel-heading h2 { margin: 0; font-size: 23px; }
+.admin-form { display: grid; gap: 13px; }
+.admin-field-row { display: grid; grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr); gap: 11px; }
+.admin-form textarea { min-height: 174px; }
+.admin-form-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.admin-form-actions .button[hidden] { display: none; }
+.admin-record-list { display: grid; margin-top: 20px; }
+.admin-empty { padding: 20px 8px; border-top: 1px solid var(--color-border); color: var(--color-muted); font-size: 13px; }
+.admin-record { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid var(--color-border); }
+.admin-record-main { min-width: 0; }
+.admin-record-title { overflow: hidden; margin: 0; color: var(--color-text); font-size: 13px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.admin-record-meta { margin: 3px 0 0; color: var(--color-muted); font-size: 11px; }
+.admin-record-actions { display: flex; flex: 0 0 auto; gap: 6px; }
+.admin-record-actions .icon-button { width: 32px; height: 32px; }
+.admin-photo-thumb { width: 54px; height: 44px; flex: 0 0 auto; border-radius: 5px; background: #efe5dc; object-fit: cover; }
+.photo-record-list .admin-record { justify-content: start; }
+.photo-record-list .admin-record-main { flex: 1; }
+@media (max-width: 850px) { .admin-grid { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .admin-panel { padding: 16px; } .admin-field-row { grid-template-columns: 1fr; } .page-heading { gap: 10px; } }
